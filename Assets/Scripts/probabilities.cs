@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+
 namespace Game {
 	public static class Globals {
 		public enum DisplayedColor { Red, Orange, Yellow, Green, None };
 		public static Vector2 Ghost;
-
+		public static Dictionary<Vector2, Tile> _tiles;
 		// Will have to double check that these add up to 100, lol.
 		// The professor said we could tweak these values and see how it affects the gameplay.
 		public static Dictionary<DisplayedColor, double> RedDict = new Dictionary<DisplayedColor, double>() {
-		                { DisplayedColor.Red, 0.90 },
-		                { DisplayedColor.Orange, 0.06 },
-		                { DisplayedColor.Yellow, 0.03 },
-		                { DisplayedColor.Green, 0.01 },
+		                {DisplayedColor.Red, 0.90},
+		                {DisplayedColor.Orange, 0.06},
+		                {DisplayedColor.Yellow, 0.03},
+		                {DisplayedColor.Green, 0.01},
 		            };
 		public static Dictionary<DisplayedColor, double> OrangeDict = new Dictionary<DisplayedColor, double>() {
 		                { DisplayedColor.Red, 0.06 },
@@ -42,12 +44,18 @@ namespace Game {
 
 	public class GamePlay {
 		
+		public static void InitGamePlay(Dictionary<Vector2, Tile> t) {
+			Globals._tiles = t;
+			PlaceGhost();
+			// Forgot to remove this argument... it's global anyways
+			InitializeProbabilities(Globals._tiles);
+	    }
+		
 	    // This function is ran at the very beginning, in Start() I believe.
 	    public static void PlaceGhost() {
-	        //System.Random rand = new System.Random(); // var?
-	        const double x = 2; // (double)rand.NextDouble();
-	        const double y = 2; // (double)rand.NextDouble();
-	        Globals.Ghost = new Vector2((float)x, (float)y);
+	    	var ghost = new Vector2(Random.Range(0, 19), Random.Range(0, 7));
+	        Globals.Ghost = ghost;
+	        Debug.Log("Ghost pos: " + Globals.Ghost);
 	    }
 	    
 	    public static void Normalize() {
@@ -64,43 +72,30 @@ namespace Game {
 	        }
 	    }
 	    
-	    public static void InitializeProbabilities() {
-	        double initial_proba = 1 / ( Globals.WIDTH * Globals.LENGTH );
-	        for (int i = 0; i < Globals.WIDTH; i++) {
-	            for (int j = 0; j < Globals.LENGTH; j++) {
-	                Globals.probabilities[i, j] = initial_proba;
-	            }
-	        }
-	        Normalize();
-	    }
-	    
-	    public static void InitializeColors() {
-	        // Not sure if this function is useful. We could remove it (along with the None color variation) if there's no point.
-	        for (int i = 0; i < Globals.WIDTH; i++) {
-	            for (int j = 0; j < Globals.LENGTH; j++) {
-	                Globals.colors[i, j] = Globals.DisplayedColor.None;
-	            }
+	    public static void InitializeProbabilities(Dictionary<Vector2, Tile> _tiles) {
+	        double initial_proba = (double) 1 / ( Globals.WIDTH * Globals.LENGTH );
+	        for(int i = 0; i < _tiles.Count; i++) {
+	        	Tile t = _tiles.ElementAt(i).Value;
+	            t.SetProba(initial_proba);
 	        }
 	    }
-	    
-	    public static void Update(int i, int j) {
-	        double prev_prob = Globals.probabilities[i, j];
+
+	    // this should be called by the onMouseDown() and should take the position of the tile
+	    // Change the proba of the clicked tile and normalize with other cells
+	    public static void UpdatePosteriorProbabilities(Vector3 clickedTilePos, Tile t) {
+	        // Run on each click.
+	        // Now we need to think of timestamps (and intuitively understand that damn Bayesian Inference formula)
+	        int x = (int)clickedTilePos.x;
+	        int y = (int)clickedTilePos.y;
+	        double prev_prob = Globals.probabilities[x, y];
 	        // Later, we'll be consistent with our use of int or Vector2, and naming of x, y or i, j
-	        int distance = GetDistanceFromGhost(i, j);
+	        int distance = GetDistanceFromGhost(x, y);
 	        Globals.DisplayedColor curr_color = GetDisplayedColor(distance);
 	        double color_prob = ConditionalProbabilityDistribution(curr_color, distance);
 	        double new_prob = prev_prob * color_prob;
-	        Globals.probabilities[i, j] = new_prob;
-	    }
-	    
-	    public static void UpdatePosteriorProbabilities() {
-	        // Run on each click.
-	        // Now we need to think of timestamps (and intuitively understand that damn Bayesian Inference formula)
-	        for (int i = 0; i < Globals.WIDTH; i++) {
-	            for (int j = 0; j < Globals.LENGTH; j++) {
-	                Update(i, j);
-	            }
-	        }
+	        Globals.probabilities[x, y] = new_prob;
+	        t.SetProba(new_prob);
+	        // Normalize();
 	    }
 	    
 	    public static int GetDistanceFromGhost(int x, int y) {
@@ -118,7 +113,7 @@ namespace Game {
 	        } else if (distance >= 5) {
 	            return Globals.GreenDict;
 	        }
-			return Globals.RedDict; // Same problem as below with ensuring a value is always returned.
+			return Globals.GreenDict; // Same problem as below with ensuring a value is alwayss returned.
 	    }
 	    
 	    public static Globals.DisplayedColor GetDisplayedColor(int distance) {
@@ -145,7 +140,7 @@ namespace Game {
 					return entry.Key;
 				}
 			}
-			return Globals.DisplayedColor.None; // Trying to avoid error saying the function may not return anything sometimes.
+			return Globals.DisplayedColor.Orange; // Trying to avoid error saying the function may not return anything sometimes.
 			// Maybe we should make the default value an actual color -- why not? The sensor is supposed to be noisy anyway.
 	    }
 	    
@@ -155,16 +150,17 @@ namespace Game {
 			return proba;
 	    }
 	    
-	    public static void AssignColor(int i, int j, Globals.DisplayedColor color) {
-	        Globals.colors[i, j] = color;
-	    }
-	    
 	    public static void Bust(int x, int y) {
 	        if (x == Globals.Ghost.x && y == Globals.Ghost.y) {
 	            Debug.Log("Congrats!");
 	        } else {
 	            Debug.Log("Game over!");
 	        }
+	    }
+	    // Not sure if we'll need this
+	    public static Tile GetTileAtPosition(Vector2 pos) {
+	        if (Globals._tiles.TryGetValue(pos, out var tile)) return tile;
+	        return null;
 	    }
 	    
 	    public static void Main(string[] args) {
