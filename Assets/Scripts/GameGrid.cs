@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Game.GamePlay;
 
 public class GameGrid : MonoBehaviour
 {
@@ -26,16 +27,13 @@ public class GameGrid : MonoBehaviour
  
                 var isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
                 spawnedTile.Init(isOffset);
- 
+                
                 _tiles[new Vector2(x, y)] = spawnedTile;
+                InitGamePlay(_tiles);
             }
         }
- 
         _cam.transform.position = new Vector3((float)_width/2 -0.5f, (float)_height / 2 - 0.5f,-10);
     }
  
-    public Tile GetTileAtPosition(Vector2 pos) {
-        if (_tiles.TryGetValue(pos, out var tile)) return tile;
-        return null;
-    }
+    
 }
