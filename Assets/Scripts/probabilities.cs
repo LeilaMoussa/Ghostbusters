@@ -8,13 +8,12 @@ namespace Game {
 		public enum DisplayedColor { Red, Orange, Yellow, Green, None };
 		public static Vector2 Ghost;
 		public static Dictionary<Vector2, Tile> _tiles;
-		// Will have to double check that these add up to 100, lol.
 		// The professor said we could tweak these values and see how it affects the gameplay.
 		public static Dictionary<DisplayedColor, double> RedDict = new Dictionary<DisplayedColor, double>() {
-		                {DisplayedColor.Red, 0.90},
-		                {DisplayedColor.Orange, 0.06},
-		                {DisplayedColor.Yellow, 0.03},
-		                {DisplayedColor.Green, 0.01},
+		                { DisplayedColor.Red, 0.90 },
+		                { DisplayedColor.Orange, 0.06 },
+		                { DisplayedColor.Yellow, 0.03 },
+		                { DisplayedColor.Green, 0.01 },
 		            };
 		public static Dictionary<DisplayedColor, double> OrangeDict = new Dictionary<DisplayedColor, double>() {
 		                { DisplayedColor.Red, 0.06 },
@@ -84,18 +83,16 @@ namespace Game {
 	    // Change the proba of the clicked tile and normalize with other cells
 	    public static void UpdatePosteriorProbabilities(Vector3 clickedTilePos, Tile t) {
 	        // Run on each click.
-	        // Now we need to think of timestamps (and intuitively understand that damn Bayesian Inference formula)
 	        int x = (int)clickedTilePos.x;
 	        int y = (int)clickedTilePos.y;
 	        double prev_prob = Globals.probabilities[x, y];
-	        // Later, we'll be consistent with our use of int or Vector2, and naming of x, y or i, j
 	        int distance = GetDistanceFromGhost(x, y);
 	        Globals.DisplayedColor curr_color = GetDisplayedColor(distance);
 	        double color_prob = ConditionalProbabilityDistribution(curr_color, distance);
 	        double new_prob = prev_prob * color_prob;
 	        Globals.probabilities[x, y] = new_prob;
 	        t.SetProba(new_prob);
-	        // Normalize();
+	        Normalize();
 	    }
 	    
 	    public static int GetDistanceFromGhost(int x, int y) {
@@ -113,7 +110,7 @@ namespace Game {
 	        } else if (distance >= 5) {
 	            return Globals.GreenDict;
 	        }
-			return Globals.GreenDict; // Same problem as below with ensuring a value is alwayss returned.
+			return Globals.GreenDict;
 	    }
 	    
 	    public static Globals.DisplayedColor GetDisplayedColor(int distance) {
@@ -122,8 +119,7 @@ namespace Game {
 	        Dictionary<Globals.DisplayedColor, double> dist = GetRelevantDistribution(distance);
 	        List<double> probas = System.Linq.Enumerable.ToList(dist.Values);
 	        probas.Sort();
-	        double to_match = 0; // This is insane. It's complaining about to_match being unassigned at compile time.
-			// I'll find a better way, even if it means uglier code.
+	        double to_match = probas[rand.Next(0, 4)];
 
 			if (rand_val <= probas[0]) {
 				to_match = probas[0];
@@ -140,8 +136,7 @@ namespace Game {
 					return entry.Key;
 				}
 			}
-			return Globals.DisplayedColor.Orange; // Trying to avoid error saying the function may not return anything sometimes.
-			// Maybe we should make the default value an actual color -- why not? The sensor is supposed to be noisy anyway.
+			return Globals.DisplayedColor.Orange;
 	    }
 	    
 	    public static double ConditionalProbabilityDistribution(Globals.DisplayedColor color, int distance) {
