@@ -45,7 +45,7 @@ public class Tile : MonoBehaviour{  // , IPointerClickHandler
             else{
                 Debug.Log("Game over!");
             }
-            Application.Quit();
+            UnityEditor.EditorApplication.isPlaying = false;
         }
     }
 
