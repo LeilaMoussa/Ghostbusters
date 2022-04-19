@@ -6,7 +6,7 @@ using static Game.GamePlay;
 
 public class GameGrid : MonoBehaviour
 {
-    [SerializeField] private int _width, _height;
+    [SerializeField] public int _width, _height;
  
     [SerializeField] private Tile _tilePrefab;
  
@@ -29,11 +29,9 @@ public class GameGrid : MonoBehaviour
                 spawnedTile.Init(isOffset);
                 
                 _tiles[new Vector2(x, y)] = spawnedTile;
-                InitGamePlay(_tiles);
+                InitGamePlay(_tiles, _width, _height);
             }
         }
         _cam.transform.position = new Vector3((float)_width/2 -0.5f, (float)_height / 2 - 0.5f,-10);
     }
- 
-    
 }
