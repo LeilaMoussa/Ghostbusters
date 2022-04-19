@@ -34,27 +34,27 @@ namespace Game {
 		                { DisplayedColor.Green, 0.80 },
 		            };
 		            
-		public static int WIDTH = 8;
-		public static int LENGTH = 20;
-		public static double [ , ] probabilities = new double [WIDTH, LENGTH]; // Probability of ghost being in i, j
-		public static DisplayedColor [ , ] colors = new DisplayedColor[WIDTH, LENGTH];
+		public static int WIDTH;
+		public static int LENGTH;
+		public static double [ , ] probabilities; // Probability of ghost being in i, j
 	}
 	
 
 	public class GamePlay {
 		
-		public static void InitGamePlay(Dictionary<Vector2, Tile> t) {
-			Globals._tiles = t;
+		public static void InitGamePlay(Dictionary<Vector2, Tile> _tiles, int _width, int _height) {
+			Globals._tiles = _tiles;
+			Globals.WIDTH = _width;
+			Globals.LENGTH = _height;
 			PlaceGhost();
-			// Forgot to remove this argument... it's global anyways
-			InitializeProbabilities(Globals._tiles);
+		 	Globals.probabilities = new double [_width, _height]; // Probability of ghost being in i, j
+		 	InitializeProbabilities();
 	    }
 		
 	    // This function is ran at the very beginning, in Start() I believe.
 	    public static void PlaceGhost() {
-	    	var ghost = new Vector2(Random.Range(0, 19), Random.Range(0, 7));
+	    	var ghost = new Vector2(Random.Range(0, Globals.WIDTH - 1), Random.Range(0, Globals.LENGTH - 1));
 	        Globals.Ghost = ghost;
-	        Debug.Log("Ghost pos: " + Globals.Ghost);
 	    }
 	    
 	    public static void Normalize() {
@@ -67,15 +67,23 @@ namespace Game {
 	        for (int i = 0; i < Globals.WIDTH; i++) {
 	            for (int j = 0; j < Globals.LENGTH; j++) {
 	                Globals.probabilities[i, j] = Globals.probabilities[i, j] / sum;
+	                Vector2 vec = new Vector2((float)i, (float)j);
+	                Tile t = GetTileAtPosition(vec);
+	                t.SetProba(Globals.probabilities[i, j]);
 	            }
 	        }
 	    }
 	    
-	    public static void InitializeProbabilities(Dictionary<Vector2, Tile> _tiles) {
+	    public static void InitializeProbabilities() {
 	        double initial_proba = (double) 1 / ( Globals.WIDTH * Globals.LENGTH );
-	        for(int i = 0; i < _tiles.Count; i++) {
-	        	Tile t = _tiles.ElementAt(i).Value;
+	        for(int i = 0; i < Globals._tiles.Count; i++) {
+	        	Tile t = Globals._tiles.ElementAt(i).Value;
 	            t.SetProba(initial_proba);
+	        }
+	        for (int i = 0; i < Globals.WIDTH; i++) {
+	            for (int j = 0; j < Globals.LENGTH; j++) {
+	                Globals.probabilities[i, j] = initial_proba;
+	            }
 	        }
 	    }
 
@@ -85,13 +93,18 @@ namespace Game {
 	        // Run on each click.
 	        int x = (int)clickedTilePos.x;
 	        int y = (int)clickedTilePos.y;
+	        Debug.Log("The clicked tile: "+ x+ " "+y);
 	        double prev_prob = Globals.probabilities[x, y];
 	        int distance = GetDistanceFromGhost(x, y);
 	        Globals.DisplayedColor curr_color = GetDisplayedColor(distance);
 	        double color_prob = ConditionalProbabilityDistribution(curr_color, distance);
 	        double new_prob = prev_prob * color_prob;
+	        Debug.Log("Ghost pos: " + Globals.Ghost);
+	        Debug.Log(prev_prob + " " + distance + " " + curr_color + " " + color_prob);
 	        Globals.probabilities[x, y] = new_prob;
 	        t.SetProba(new_prob);
+	        t.SetColor(curr_color);
+
 	        Normalize();
 	    }
 	    
@@ -145,12 +158,8 @@ namespace Game {
 			return proba;
 	    }
 	    
-	    public static void Bust(int x, int y) {
-	        if (x == Globals.Ghost.x && y == Globals.Ghost.y) {
-	            Debug.Log("Congrats!");
-	        } else {
-	            Debug.Log("Game over!");
-	        }
+	    public static bool Bust(Vector2 busted) {
+	    	return busted.x == Globals.Ghost.x && busted.y == Globals.Ghost.y;
 	    }
 	    // Not sure if we'll need this
 	    public static Tile GetTileAtPosition(Vector2 pos) {
