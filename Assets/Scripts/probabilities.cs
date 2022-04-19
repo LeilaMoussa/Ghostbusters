@@ -51,7 +51,6 @@ namespace Game {
 		 	InitializeProbabilities();
 	    }
 		
-	    // This function is ran at the very beginning, in Start() I believe.
 	    public static void PlaceGhost() {
 	    	var ghost = new Vector2(Random.Range(0, Globals.WIDTH - 1), Random.Range(0, Globals.LENGTH - 1));
 	        Globals.Ghost = ghost;
@@ -87,8 +86,6 @@ namespace Game {
 	        }
 	    }
 
-	    // this should be called by the onMouseDown() and should take the position of the tile
-	    // Change the proba of the clicked tile and normalize with other cells
 	    public static void UpdatePosteriorProbabilities(Vector3 clickedTilePos, Tile t) {
 	        // Run on each click.
 	        int x = (int)clickedTilePos.x;
@@ -161,14 +158,10 @@ namespace Game {
 	    public static bool Bust(Vector2 busted) {
 	    	return busted.x == Globals.Ghost.x && busted.y == Globals.Ghost.y;
 	    }
-	    // Not sure if we'll need this
+		
 	    public static Tile GetTileAtPosition(Vector2 pos) {
 	        if (Globals._tiles.TryGetValue(pos, out var tile)) return tile;
 	        return null;
-	    }
-	    
-	    public static void Main(string[] args) {
-	        Debug.Log("We probably don't need this.");
 	    }
 	}
 }
