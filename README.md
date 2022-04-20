@@ -20,7 +20,7 @@ Here's a screen recording of a couple of games: https://www.youtube.com/watch?v=
 ## Code
 
 ### Files
-Under `Assets/Scripts`, the 3 files we're concern with, in increasing importance, are:
+Under `Assets/Scripts`, the 3 files we're concerned with, in increasing importance, are:
 - `GameGrid.cs`: generates the grid and calls the functions that initialize the Ghost's position and the prior probabilities
 - `Tile.cs`: controls the display of each tile in the grid, including text, color, and user interactions
 - `probabilities.cs`: the main piece of the project, involving the conditional probabilities we defined, belief updating, and normalization
