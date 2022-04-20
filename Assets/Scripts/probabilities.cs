@@ -30,7 +30,7 @@ namespace Game {
 		public static Dictionary<DisplayedColor, double> GreenDict = new Dictionary<DisplayedColor, double>() {
 						{ DisplayedColor.Red, 0.04 },
 		                { DisplayedColor.Orange, 0.06 },
-		                { DisplayedColor.Yellow, 0.15 },
+		                { DisplayedColor.Yellow, 0.10 },
 		                { DisplayedColor.Green, 0.80 },
 		            };
 		            
